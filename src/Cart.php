@@ -184,9 +184,10 @@ class Cart
     {
         // Clear the session cart
         $this->destroy();
-
+    
         // If an identifier is provided, remove the cart record from the database
         if ($identifier) {
+            $this->deleteDependentRecords($identifier);
             $this->deleteCartRecord($identifier);
         }
     }
@@ -201,6 +202,15 @@ class Cart
     {
         $this->getConnection()->table($this->getTableName())
             ->where('identifier', $identifier)
+            ->delete();
+    }
+
+    private function deleteDependentRecords($identifier)
+    {
+        // Ensure that dependent records are deleted or updated
+        // For example, deleting associated orders
+        $this->getConnection()->table('orders')
+            ->where('cart_identifier', $identifier)
             ->delete();
     }
 
