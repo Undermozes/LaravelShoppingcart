@@ -84,19 +84,13 @@ class Cart
      * @param int|float $qty
      * @param float     $price
      * @param array     $options
-     * @param bool      $clearCart
      * @return \Gloudemans\Shoppingcart\CartItem
      */
-    public function add($id, $name = null, $qty = null, $price = null, array $options = [], $clearCart = false)
+    public function add($id, $name = null, $qty = null, $price = null, array $options = [])
     {
-        // Clear the cart if $clearCart is true
-        if ($clearCart) {
-            $this->destroy();
-        }
-
         if ($this->isMulti($id)) {
-            return array_map(function ($item) use ($name, $qty, $price, $options) {
-                return $this->add($item, $name, $qty, $price, $options);
+            return array_map(function ($item) {
+                return $this->add($item);
             }, $id);
         }
 
@@ -109,7 +103,7 @@ class Cart
         }
 
         $content->put($cartItem->rowId, $cartItem);
-
+        
         //$this->events->fire('cart.added', $cartItem);
 
         $this->session->put($this->instance, $content);
@@ -179,6 +173,37 @@ class Cart
 
         $this->session->put($this->instance, $content);
     }
+
+    /**
+     * Clear the cart contents and remove the cart record from the database.
+     *
+     * @param mixed|null $identifier
+     * @return void
+     */
+    public function clear($identifier = null)
+    {
+        // Clear the session cart
+        $this->destroy();
+
+        // If an identifier is provided, remove the cart record from the database
+        if ($identifier) {
+            $this->deleteCartRecord($identifier);
+        }
+    }
+
+        /**
+     * Remove the cart record from the database.
+     *
+     * @param mixed $identifier
+     * @return void
+     */
+    private function deleteCartRecord($identifier)
+    {
+        $this->getConnection()->table($this->getTableName())
+            ->where('identifier', $identifier)
+            ->delete();
+    }
+
 
     /**
      * Get a cart item from the cart by its rowId.
