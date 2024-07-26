@@ -351,16 +351,33 @@ class Cart
         $content = $this->getContent();
 
         if ($this->storedCartWithIdentifierExists($identifier)) {
-            throw new CartAlreadyStoredException("A cart with identifier {$identifier} was already stored.");
+            // Update existing cart
+            $this->updateCart($identifier, $content);
+        } else {
+            // Insert new cart
+            $this->getConnection()->table($this->getTableName())->insert([
+                'identifier' => $identifier,
+                'instance' => $this->currentInstance(),
+                'content' => serialize($content)
+            ]);
         }
+    }
 
-        $this->getConnection()->table($this->getTableName())->insert([
-            'identifier' => $identifier,
-            'instance' => $this->currentInstance(),
-            'content' => serialize($content)
-        ]);
-
-        //$this->events->fire('cart.stored');
+    /**
+     * Update the existing cart record with the given identifier.
+     *
+     * @param mixed $identifier
+     * @param \Illuminate\Support\Collection $content
+     * @return void
+     */
+    private function updateCart($identifier, $content)
+    {
+        $this->getConnection()->table($this->getTableName())
+            ->where('identifier', $identifier)
+            ->update([
+                'instance' => $this->currentInstance(),
+                'content' => serialize($content)
+            ]);
     }
 
     /**
