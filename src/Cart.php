@@ -349,10 +349,13 @@ class Cart
     public function store($identifier)
     {
         $content = $this->getContent();
-
+    
         if ($this->storedCartWithIdentifierExists($identifier)) {
-            // Update existing cart
+            // Update existing cart, overwriting data
             $this->updateCart($identifier, $content);
+            
+            $this->session->put($this->instance, $content);
+
         } else {
             // Insert new cart
             $this->getConnection()->table($this->getTableName())->insert([
