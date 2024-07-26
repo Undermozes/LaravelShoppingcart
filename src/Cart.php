@@ -84,13 +84,19 @@ class Cart
      * @param int|float $qty
      * @param float     $price
      * @param array     $options
+     * @param bool      $clearCart
      * @return \Gloudemans\Shoppingcart\CartItem
      */
-    public function add($id, $name = null, $qty = null, $price = null, array $options = [])
+    public function add($id, $name = null, $qty = null, $price = null, array $options = [], $clearCart = false)
     {
+        // Clear the cart if $clearCart is true
+        if ($clearCart) {
+            $this->destroy();
+        }
+
         if ($this->isMulti($id)) {
-            return array_map(function ($item) {
-                return $this->add($item);
+            return array_map(function ($item) use ($name, $qty, $price, $options) {
+                return $this->add($item, $name, $qty, $price, $options);
             }, $id);
         }
 
@@ -103,7 +109,7 @@ class Cart
         }
 
         $content->put($cartItem->rowId, $cartItem);
-        
+
         //$this->events->fire('cart.added', $cartItem);
 
         $this->session->put($this->instance, $content);
