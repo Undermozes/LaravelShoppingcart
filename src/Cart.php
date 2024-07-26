@@ -199,10 +199,6 @@ class Cart
      */
     private function deleteCartRecord($identifier)
     {
-        // Enable foreign key constraints
-        $this->getConnection()->statement('PRAGMA foreign_keys = ON;');
-
-
         $this->getConnection()->table($this->getTableName())
             ->where('identifier', $identifier)
             ->delete();
